@@ -63,7 +63,23 @@ import Tkinter, tkFileDialog
 root = Tkinter.Tk()
 root.withdraw()
 
+# Transpose a 2D numpy array
+#
+# Input is a 2D array of complex values
+# Output is the same 2D array with rows and columns swapped
 
+def Transpose (image):
+  
+  #calculate dimensions of image, and swap
+  dim = (image.shape[1], image.shape[0])
+  #create 2D array of zeros
+  transposed = np.zeros(dim,dtype = np.complex128)
+  col_count = 0
+  for row in image:
+    transposed[:,col_count] = row
+    col_count+=1
+  
+  return transposed
 
 # 1D FT
 #
@@ -85,9 +101,25 @@ def forwardFT( image ):
   # YOUR CODE HERE
   #
   # You must replace this code with your own, keeping the same function name are parameters.
+  #initalize 2D output array of zeros
+  dim = (image.shape[0],image.shape[1])
+  output = np.zeros(dim,dtype=np.complex128)
+  #set iterator for FFT on rows
+  row_count = 0
+  for row in image:
+    output[row_count,:] = ft1D(row)
+    row_count+=1
   
-  return np.fft.fft2( image )
-
+  col_count = 0
+  #perform tranposition on 2D array in order to iterate over columns
+  transposed = Transpose(output)
+  for column in transposed:
+    output[:,col_count] = ft1D(column)
+    col_count+=1
+  
+  
+  #return np.fft.fft2( image )
+  return output
 
 
 # Do an inverse FT
