@@ -98,14 +98,12 @@ def ft1D( signal ):
 
 def forwardFT( image ):
 
-  # YOUR CODE HERE
-  #
-  # You must replace this code with your own, keeping the same function name are parameters.
   #initalize 2D output array of zeros
   dim = (image.shape[0],image.shape[1])
   output = np.zeros(dim,dtype=np.complex128)
   #set iterator for FFT on rows
   row_count = 0
+  ##compute FFT for rows of image
   for row in image:
     output[row_count,:] = ft1D(row)
     row_count+=1
@@ -113,12 +111,13 @@ def forwardFT( image ):
   col_count = 0
   #perform tranposition on 2D array in order to iterate over columns
   transposed = Transpose(output)
+  ##compute FFT for columns of image
   for column in transposed:
     output[:,col_count] = ft1D(column)
     col_count+=1
-  
-  
+    
   #return np.fft.fft2( image )
+  print "computing FFT"
   return output
 
 
@@ -129,13 +128,42 @@ def forwardFT( image ):
 
 
 def inverseFT( image ):
-
-  # YOUR CODE HERE
-  #
-  # You must replace this code with your own, keeping the same function name are parameters.
+  #The inverse FFT can be calculated by computing the FFT of the FFT of the image
   
-  return np.fft.ifft2( image )
-
+  #initalize 2D output array of zeros
+  dim = (image.shape[0],image.shape[1])
+  temp = np.zeros(dim,dtype=np.complex128)
+  output = np.zeros(dim,dtype=np.complex128)
+  #set iterator for FFT on rows
+  row_count = 0
+  ##compute FFT for rows of image
+  ##according to https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.fft.html
+  ##direct FFT is not scaled so therefore inverse must be scaled by 1/N
+  for row in image:
+    temp[row_count,:] = ft1D(row/image.shape[0])
+    #temp[row_count,:] = ft1D(row)
+    row_count+=1
+  
+  col_count = 0
+  ##Compute size of image array
+  N = image.shape[0]*image.shape[1]
+  #perform tranposition on 2D array in order to iterate over columns
+  transposed = Transpose(temp)
+  ##compute FFT for columns of image
+  ##according to https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.fft.html
+  ##direct FFT is not scaled so therefore inverse must be scaled by 1/N
+  for column in transposed:
+    temp[:,col_count] = ft1D(column/image.shape[1])
+    #temp[:,col_count] = ft1D(column)
+    col_count+=1
+  ##reverse array for correct output
+  for r in range(image.shape[0]):
+    for c in range(image.shape[1]):
+      output[r][c] = temp[image.shape[0]-r-1][image.shape[1]-c-1]
+  print "computing IFFT"
+  
+  return output
+  #return np.fft.ifft2( image )
 
 
 # Multiply two FTs
