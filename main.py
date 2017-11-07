@@ -139,29 +139,24 @@ def inverseFT( image ):
   ##compute FFT for rows of image
   ##according to https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.fft.html
   ##direct FFT is not scaled so therefore inverse must be scaled by 1/N
-  for row in image:
-    temp[row_count,:] = ft1D(row/image.shape[0])
-    #temp[row_count,:] = ft1D(row)
+  temp = np.conjugate(image)
+  for row in temp:
+    output[row_count,:] = ft1D(row/image.shape[0])
     row_count+=1
   
   col_count = 0
   ##Compute size of image array
   N = image.shape[0]*image.shape[1]
   #perform tranposition on 2D array in order to iterate over columns
-  transposed = Transpose(temp)
+  transposed = Transpose(output)
   ##compute FFT for columns of image
   ##according to https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.fft.html
   ##direct FFT is not scaled so therefore inverse must be scaled by 1/N
   for column in transposed:
-    temp[:,col_count] = ft1D(column/image.shape[1])
-    #temp[:,col_count] = ft1D(column)
+    output[:,col_count] = ft1D(column/image.shape[1])
     col_count+=1
-  ##reverse array for correct output
-  for r in range(image.shape[0]):
-    for c in range(image.shape[1]):
-      output[r][c] = temp[image.shape[0]-r-1][image.shape[1]-c-1]
+
   print "computing IFFT"
-  
   return output
   #return np.fft.ifft2( image )
 
