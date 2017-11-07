@@ -136,10 +136,11 @@ def inverseFT( image ):
   output = np.zeros(dim,dtype=np.complex128)
   #set iterator for FFT on rows
   row_count = 0
+  #take conjugate of elements in array
+  temp = np.conjugate(image)
   ##compute FFT for rows of image
   ##according to https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.fft.html
   ##direct FFT is not scaled so therefore inverse must be scaled by 1/N
-  temp = np.conjugate(image)
   for row in temp:
     output[row_count,:] = ft1D(row/image.shape[0])
     row_count+=1
@@ -156,6 +157,7 @@ def inverseFT( image ):
     output[:,col_count] = ft1D(column/image.shape[1])
     col_count+=1
 
+  output = np.conjugate(output)
   print "computing IFFT"
   return output
   #return np.fft.ifft2( image )
@@ -172,10 +174,21 @@ def inverseFT( image ):
 
 
 def multiplyFTs( image, filter ):
+  
+  #initalize 2D output array of zeros
+  #assume image and filter have same dimensions
+  dim = (image.shape[0],image.shape[1])
+  output = np.zeros(dim,dtype=np.complex128)
 
-  # YOUR CODE HERE
-
-  return image # (this is wrong) 
+  #Iterate over the filter in order to shift left and down according to the comment above
+  for r in range(image.shape[0]):
+    for c in range(image.shape[1]):
+      #use eulers formula to split complex exponentional ((simplified) as N/M cancel each other out) into real and imaginary parts
+      mult = complex(math.cos(math.pi*(r+c)),math.sin(math.pi*(r+c)))
+      output[r][c] = filter[r][c]*mult*image[r][c]
+  #leave this alone
+  print "computing filter multiplication"
+  return output
 
 
 
