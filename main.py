@@ -492,6 +492,7 @@ def keyboard( key, x, y ):
 
   elif key in ['a','s']:
     editMode = key
+    print editMode
 
   elif key == 'z':
     zoom = 1
@@ -745,7 +746,7 @@ def mouse( button, state, x, y ):
 
       modulatePixels( image, pixelX, pixelY, isFT )
 
-      print 'click at', pixelX, pixelY
+      #print 'click at', pixelX, pixelY
 
       # Done
 
@@ -804,7 +805,84 @@ def mouseMotion( x, y ):
 
 
 def modulatePixels( image, x, y, isFT ):
+  
+  print "x: " + str(x) + ", y: " + str(y)
+  #print "radius: " + str(radius)
+  
+  #set row index
+  row_start = y - radius
+  if (row_start < 0):
+    row_start = 0
+  row_end = y + radius
+  if (row_end > image.shape[1]):
+    row_end = image.shape[1]
+  #set column index
+  col_start = x - radius
+  if (col_start < 0):
+    col_start = 0
+  col_end = x + radius
+  if (col_end > image.shape[0]):
+    col_end = image.shape[0]
+  
+  #print "iterate from x: " + str(row_start) + "-" + str(row_end)
+  #print "iterate from y: " + str(col_start) + "-" + str(col_end)
+  
+  stdDev = (radius/2) #standard deviation
+  A = 1 #amplitude
+  #iterates over circle at the location of the mouse click of size radius
+  for row in range(row_start,row_end):
+    for col in range(col_start,col_end):
+      if ( math.sqrt( (row-(row_start+row_end)/2)**2 + (col-(col_start+col_end)/2)**2 ) <=radius):
+        gaussian = A * math.exp( -1 * ( ( (row-y)**2 ) + ( (col-x)**2 ) )/ (2*stdDev**2) )
+        if (editMode == 's'): #subtractive mode
+          if (isFT):
+            real = np.real(image[row][col])
+            imag = np.imag(image[row][col])
+            
+            if (real < 0):
+              real = -1*real
+              real = math.exp( math.log(real) * (1 - gaussian) )
+              real = -1*real
+            else:
+              real = math.exp( math.log(real) * (1 - gaussian) )
+            if (imag < 0):
+              imag = -1*imag
+              imag = math.exp( math.log(imag) * (1 - gaussian) )
+              imag = -1*imag
+            else:
+              imag = math.exp( math.log(imag) * (1 - gaussian) )
+              
 
+            image[row][col] = real + 1j * imag
+            image[image.shape[0]-1-row][image.shape[1]-1-col] = real + 1j * imag
+             
+          else:
+            image[row][col] = image[row][col] * ( 1 - gaussian )
+            
+        if (editMode == 'a'): #additive mode
+          if (isFT): 
+            real = np.real(image[row][col])
+            imag = np.imag(image[row][col])
+            
+            if (real < 0):
+              real = -1*real
+              real = math.exp( math.log(real) * (1 + 0.1 * gaussian) )
+              real = -1*real
+            else:
+              real = math.exp( math.log(real) * (1 + 0.1 * gaussian) )
+            if (imag < 0):
+              imag = -1*imag
+              imag = math.exp( math.log(imag) * (1 + 0.1 * gaussian) )
+              imag = -1*imag
+            else:
+              imag = math.exp( math.log(imag) * (1 + 0.1 * gaussian) )
+ 
+            image[row][col] = real + 1j * imag
+            image[image.shape[0]-1-row][image.shape[1]-1-col] = real + 1j * imag
+        
+          else:
+            image[row][col] = image[row][col] * ( 1 + 0.1 * gaussian )
+  
   # YOUR CODE HERE
 
   pass
