@@ -809,6 +809,7 @@ def modulatePixels( image, x, y, isFT ):
   print "x: " + str(x) + ", y: " + str(y)
   #print "radius: " + str(radius)
   
+  #calculate row and column variables in order to iterate only on pixels within the square formed by the length radius around the clicked pixel
   #set row index
   row_start = y - radius
   if (row_start < 0):
@@ -832,13 +833,17 @@ def modulatePixels( image, x, y, isFT ):
   #iterates over circle at the location of the mouse click of size radius
   for row in range(row_start,row_end):
     for col in range(col_start,col_end):
+      #check if current pixel is within the radius of the clicked pixel
       if ( math.sqrt( (row-(row_start+row_end)/2)**2 + (col-(col_start+col_end)/2)**2 ) <=radius):
+        #calculate the gaussian
         gaussian = A * math.exp( -1 * ( ( (row-y)**2 ) + ( (col-x)**2 ) )/ (2*stdDev**2) )
         if (editMode == 's'): #subtractive mode
           if (isFT):
+            #split the image value into real and imaginary parts
             real = np.real(image[row][col])
             imag = np.imag(image[row][col])
             
+            #if the value is less than zero, log throws a math domain error, therefore switch to positive, apply transform, and switch back to negative
             if (real < 0):
               real = -1*real
               real = math.exp( math.log(real) * (1 - gaussian) )
@@ -852,15 +857,17 @@ def modulatePixels( image, x, y, isFT ):
             else:
               imag = math.exp( math.log(imag) * (1 - gaussian) )
               
-
+            #apply to current pixel and mirror of pixel in image
             image[row][col] = real + 1j * imag
             image[image.shape[0]-1-row][image.shape[1]-1-col] = real + 1j * imag
              
           else:
+            #otherwise, just apply gaussian normally
             image[row][col] = image[row][col] * ( 1 - gaussian )
             
         if (editMode == 'a'): #additive mode
           if (isFT): 
+            #see comments made for subtractive mode
             real = np.real(image[row][col])
             imag = np.imag(image[row][col])
             
@@ -882,8 +889,6 @@ def modulatePixels( image, x, y, isFT ):
         
           else:
             image[row][col] = image[row][col] * ( 1 + 0.1 * gaussian )
-  
-  # YOUR CODE HERE
 
   pass
 
